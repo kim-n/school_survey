@@ -49,6 +49,11 @@ class User
     User.new(results[0]) unless results.empty?
   end
 
+  def initialize(options = {})
+    @id, @fname, @lname =
+    options.values_at("id", "fname", "lname")
+  end
+
   def authored_questions
     Question.find_by_author_id(@id)
   end
@@ -57,9 +62,8 @@ class User
     Reply.find_by_user_id(@id)
   end
 
-  def initialize(options = {})
-    @id, @fname, @lname =
-    options.values_at("id", "fname", "lname")
+  def followed_questions
+    QuestionFollower.followed_questions_for_user_id(@id)
   end
 
 end  #END CLASS USER
@@ -98,6 +102,10 @@ class Question
 
   def replies
     Reply.find_by_question_id(@id)
+  end
+
+  def followers
+    QuestionFollower.followers_for_question_id(@id)
   end
 
 end  #END CLASS QUESTION
@@ -180,6 +188,34 @@ class QuestionFollower
     SQL
 
     QuestionFollower.new(results[0]) unless results.empty?
+  end
+
+  def self.followers_for_question_id(id)
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+    SELECT DISTINCT
+      user_id, fname, lname
+    FROM
+      question_followers qf
+    JOIN users u ON u.id = qf.user_id
+    WHERE
+      qf.question_id = ?
+    SQL
+
+    results.map { |result| User.new(result) }
+  end
+
+  def self.followed_questions_for_user_id(id)
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+    SELECT DISTINCT
+      questions.id, title, body, question_followers.user_id
+    FROM
+      question_followers
+    JOIN questions ON questions.id = question_followers.question_id
+    WHERE
+      question_followers.user_id = ?
+    SQL
+
+    results.map { |result| Question.new(result) }
   end
 
   def initialize(options = {})
