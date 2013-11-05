@@ -78,7 +78,18 @@ VALUES
   ( (SELECT id FROM questions WHERE title = 'Does this work?'),
     (SELECT id FROM users WHERE lname = "Buckley") ),
   ((SELECT id FROM questions WHERE title = 'Space-time dilation'),
-    (SELECT id FROM users WHERE lname = "Einstein") );
+    (SELECT id FROM users WHERE lname = "Einstein") ),
+  ( (SELECT id FROM questions WHERE title = 'Does this work?'),
+    (SELECT id FROM users WHERE lname = "Narine") ),
+  ((SELECT id FROM questions WHERE title = 'Space-time dilation'),
+    (SELECT id FROM users WHERE lname = "Raval") ),
+  ((SELECT id FROM questions WHERE title = 'Space-time dilation'),
+    (SELECT id FROM users WHERE lname = "Narine") ),
+  ((SELECT id FROM questions WHERE title = 'Excused lateness'),
+    (SELECT id FROM users WHERE lname = "Duek") ),
+  ((SELECT id FROM questions WHERE title = 'SQL <3'),
+    (SELECT id FROM users WHERE lname = "Narine") )
+    ;
 
 --REPLIES
 INSERT INTO
