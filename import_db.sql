@@ -69,6 +69,8 @@ VALUES
   ('Excused lateness', "Is it okay for me to be absent on Monday? I think I'll be hungover. Tuesday I is just not coming.",
   (SELECT id FROM users WHERE lname = "Buckley")),
   ('SQL <3', "Isn't SQL great?",
+  (SELECT id FROM users WHERE lname = "Buckley")),
+  ('Great show', "Good job",
   (SELECT id FROM users WHERE lname = "Buckley"));
 
 --FOLLOW QUESTIONS
@@ -119,4 +121,11 @@ VALUES
     (SELECT id FROM users WHERE lname = "Buckley") ),
 
   ( (SELECT id FROM questions WHERE title = 'Does this work?'),
-    (SELECT id FROM users WHERE lname = "Tamboer") );
+    (SELECT id FROM users WHERE lname = "Tamboer") ),
+  ( (SELECT id FROM questions WHERE title = 'Excused lateness'),
+    (SELECT id FROM users WHERE lname = "Tamboer") ),
+  ( (SELECT id FROM questions WHERE title = 'SQL <3'),
+    (SELECT id FROM users WHERE lname = "Narine") ),
+  ( (SELECT id FROM questions WHERE title = 'Does this work?'),
+    (SELECT id FROM users WHERE lname = "Raval") );
+
