@@ -27,94 +27,15 @@ class QuestionsDatabase < SQLite3::Database
   end
 end
 
-#
-# class Department
-#   def self.all
-#     # execute a SELECT; result in an `Array` of `Hash`es, each
-#     # represents a single row.
-#     results = SchoolDatabase.instance.execute("SELECT * FROM departments")
-#     # results.map { |result| Department.new(result) }
-#   end
-#
-#   attr_accessor :id, :name
-#
-#   def initialize(options = {})
-#     @id = options["id"]
-#     @name = options["name"]
-#   end
-#
-#   def create
-#     # in this example, we'll only allow new rows to be created; never
-#     # modified.
-#     raise "already saved!" unless self.id.nil?
-#
-#     # execute an INSERT; the '?' gets replaced with the value name. The
-#     # '?' lets us separate SQL commands from data, improving
-#     # readability, and also safety (lookup SQL injection attack on
-#     # wikipedia).
-#     SchoolDatabase.instance.execute(<<-SQL, name)
-#       INSERT INTO
-#         departments (name)
-#       VALUES
-#         (?)
-#     SQL
-#
-#     @id = SchoolDatabase.instance.last_insert_row_id
-#   end
-#
-#   def professors
-#     results = SchoolDatabase.instance.execute(<<-SQL, self.id)
-#       SELECT
-#         *
-#       FROM
-#         professors
-#       WHERE
-#         professors.department_id = ?
-#     SQL
-#
-#     results.map { |result| Professor.new(result) }
-#   end
-# end
-#
-# class Professor
-#   attr_accessor :id, :first_name, :last_name, :department_id
-#
-#   def initialize(options = {})
-#     @first_name, @last_name, @department_id =
-#       options.values_at("first_name", "last_name", "department_id")
-#   end
-#
-#   def create
-#     raise "already saved!" unless self.id.nil?
-#
-#     # execute an INSERT; the '?' gets replaced with the value name. The
-#     # '?' lets us separate SQL commands from data, improving
-#     # readability, and also safety (lookup SQL injection attack on
-#     # wikipedia).
-#     params = [self.first_name, self.last_name, self.department_id]
-#     SchoolDatabase.instance.execute(<<-SQL, *params)
-#       INSERT INTO
-#         professors (first_name, last_name, department_id)
-#       VALUES
-#         (?, ?, ?)
-#     SQL
-#
-#     @id = SchoolDatabase.instance.last_insert_row_id
-#   end
-# end
-
 class User
+
+  attr_reader :id, :fname, :lname
 
   def self.find_by_id(id)
     # execute a SELECT; result in an `Array` of `Hash`es, each
     # represents a single row.
     results = QuestionsDatabase.instance.execute(<<-SQL, id)
-    SELECT
-      *
-    FROM
-      users
-    WHERE
-      users.id = ?
+    SELECT * FROM users WHERE users.id = ?
     SQL
 
     User.new(results[0]) unless results.empty?
@@ -122,44 +43,171 @@ class User
 
   def self.find_by_name(fname, lname)
     results = QuestionsDatabase.instance.execute(<<-SQL, fname, lname)
-    SELECT
-      *
-    FROM
-      users
-    WHERE
-      users.fname = ?
-      AND users.lname = ?
+    SELECT * FROM users WHERE users.fname = ? AND users.lname = ?
     SQL
 
     User.new(results[0]) unless results.empty?
   end
 
+  def authored_questions
+    Question.find_by_author_id(@id)
+  end
+
+  def authored_replies
+    Reply.find_by_user_id(@id)
+  end
+
   def initialize(options = {})
-    @fname, @lname =
-    options.values_at("fname", "lname")
+    @id, @fname, @lname =
+    options.values_at("id", "fname", "lname")
+  end
+
+end  #END CLASS USER
+
+
+class Question
+
+  attr_reader :id, :title, :body, :user_id
+
+  def self.find_by_id(id) #q_ID
+    # execute a SELECT; result in an `Array` of `Hash`es, each
+    # represents a single row.
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+    SELECT * FROM questions WHERE questions.id = ?
+    SQL
+
+    Question.new(results[0]) unless results.empty?
+  end
+
+  def self.find_by_author_id(id)
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+    SELECT * FROM questions WHERE questions.user_id = ?
+    SQL
+
+    results.map { |result| Question.new(result) }
+  end
+
+  def initialize(options = {})
+    @id, @title, @body, @user_id =
+    options.values_at("id", "title", "body", "user_id")
+  end
+
+  def author
+    User.find_by_id(@user_id)
+  end
+
+  def replies
+    Reply.find_by_question_id(@id)
+  end
+
+end  #END CLASS QUESTION
+
+
+class Reply
+
+  attr_reader :id, :body, :parent_reply, :question_id, :user_id
+
+  def self.find_by_id(id)
+    # execute a SELECT; result in an `Array` of `Hash`es, each
+    # represents a single row.
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+    SELECT * FROM replies WHERE replies.id = ?
+    SQL
+
+    Reply.new(results[0]) unless results.empty?
+  end
+
+  def self.find_by_user_id(id)
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+    SELECT * FROM replies WHERE replies.user_id = ?
+    SQL
+
+    results.map { |result| Reply.new(result) }
+  end
+
+  def self.find_by_question_id(id)
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+    SELECT * FROM replies WHERE replies.question_id = ?
+    SQL
+
+    results.map { |result| Reply.new(result) }
+  end
+
+  def self.find_by_parent_reply_id(id)
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+    SELECT * FROM replies WHERE replies.parent_reply = ?
+    SQL
+
+    results.map { |result| Reply.new(result) }
   end
 
 
+  def initialize(options = {})
+    @id, @body, @parent_reply, @question_id, @user_id =
+    options.values_at("id", "body", "parent_reply", "question_id", "user_id")
+  end
+
+  def author
+    User.find_by_id(user_id)
+  end
+
+  def question
+    Question.find_by_id(question_id)
+  end
+
+  def parent_reply
+    # self is an object of class Reply
+    # We want to return the reply whose reply_id is
+    # the same as the current object's parent_reply
+    Reply.find_by_id(@parent_reply)
+  end
+
+  def child_reply
+    Reply.find_by_parent_reply_id(id)
+  end
+
+end  #END CLASS REPLY
+
+class QuestionFollower
+
+  attr_reader :question_id, :user_id
+
+  def self.find_by_id(id)
+    # execute a SELECT; result in an `Array` of `Hash`es, each
+    # represents a single row.
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+    SELECT * FROM question_followers WHERE question_followers.id = ?
+    SQL
+
+    QuestionFollower.new(results[0]) unless results.empty?
+  end
+
+  def initialize(options = {})
+    @question_id, @user_id =
+    options.values_at("question_id", "user_id")
+  end
+
+end  #END CLASS QUESTIONFOLLOWER
 
 
-end
-#
-# class Question
-#
-#
-# end
-#
-# class QuestionFollower
-#
-#
-# end
-#
-# class Reply
-#
-#
-# end
-#
-# class QuestionLike
-#
-#
-# end
+
+class QuestionLike
+
+  attr_reader :question_id, :user_id
+
+  def self.find_by_id(id)
+    # execute a SELECT; result in an `Array` of `Hash`es, each
+    # represents a single row.
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+    SELECT * FROM question_followers WHERE question_likes.id = ?
+    SQL
+
+    QuestionLike.new(results[0]) unless results.empty?
+  end
+
+  def initialize(options = {})
+    @question_id, @user_id =
+    options.values_at("question_id", "user_id")
+  end
+
+end  #END CLASS QUESTIONLIKE

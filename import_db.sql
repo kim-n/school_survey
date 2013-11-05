@@ -64,10 +64,12 @@ INSERT INTO
 VALUES
   ('Does this work?', "I really hope it does. Also I can have lots an lots of words here. Isn't that great?",
   (SELECT id FROM users WHERE lname = "Einstein")),
-    ('Space-time dilation', "This isn't really a question, but I think you're crazy Einstein.",
-    (SELECT id FROM users WHERE lname = "Godel")),
-        ('Excused lateness', "Is it okay for me to be absent on Monday? I think I'll be hungover. Tuesday I is just not coming.",
-        (SELECT id FROM users WHERE lname = "Buckley"));
+  ('Space-time dilation', "This isn't really a question, but I think you're crazy Einstein.",
+  (SELECT id FROM users WHERE lname = "Godel")),
+  ('Excused lateness', "Is it okay for me to be absent on Monday? I think I'll be hungover. Tuesday I is just not coming.",
+  (SELECT id FROM users WHERE lname = "Buckley")),
+  ('SQL <3', "Isn't SQL great?",
+  (SELECT id FROM users WHERE lname = "Buckley"));
 
 --FOLLOW QUESTIONS
 INSERT INTO
